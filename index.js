@@ -46,6 +46,12 @@ if (cluster.isPrimary) {
     });
 
     io.on("connection", async (socket) => {
+        socket.broadcast.emit("chat message", "A user connected");
+
+        socket.on("disconnect", () => {
+            socket.broadcast.emit("chat message", "A user disconnected");
+        });
+
         socket.on("chat message", async (msg, clientOffset, callback) => {
             let result;
             try {
