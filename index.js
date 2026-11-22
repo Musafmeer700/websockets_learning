@@ -46,30 +46,34 @@ if (cluster.isPrimary) {
     });
 
     io.on("connection", async (socket) => {
-        socket.broadcast.emit("chat message", "A user connected");
+        const nickname = String(socket.handshake.auth.nickname || "Anonymous").trim().slice(0, 30) || "Anonymous";
+        socket.data.nickname = nickname;
+
+        socket.broadcast.emit("chat message", `${nickname} connected`);
 
         socket.on("disconnect", () => {
-            socket.broadcast.emit("chat message", "A user disconnected");
+            socket.broadcast.emit("chat message", `${nickname} disconnected`);
         });
 
         socket.on("chat message", async (msg, clientOffset, callback) => {
+            const content = `${socket.data.nickname}: ${String(msg)}`;
             let result;
             try {
                 result = await db.run(
                     "INSERT INTO messages (content, client_offset) VALUES (?, ?)",
-                    msg,
+                    content,
                     clientOffset,
                 );
             } catch (e) {
                 if (e.errno === 19 /* SQLITE_CONSTRAINT */) {
-                    callback();
+                    callback?.();
                 } else {
                     // nothing to do, just let the client retry
                 }
                 return;
             }
-            io.emit("chat message", msg, result.lastID);
-            callback();
+            io.emit("chat message", content, result.lastID);
+            callback?.();
         });
 
         if (!socket.recovered) {

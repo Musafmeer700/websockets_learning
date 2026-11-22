@@ -71,6 +71,9 @@
                 retries: 3,
                 auth: {
                     serverOffset: 0,
+                    nickname:
+                        window.prompt("Choose a nickname", "Anonymous")?.trim().slice(0, 30) ||
+                        "Anonymous",
                 },
             });
 
@@ -92,7 +95,9 @@
                 item.textContent = msg;
                 messages.appendChild(item);
                 window.scrollTo(0, document.body.scrollHeight);
-                socket.auth.serverOffset = serverOffset;
+                if (Number.isInteger(serverOffset)) {
+                    socket.auth.serverOffset = serverOffset;
+                }
             });
         </script>
     </body>
