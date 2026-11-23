@@ -72,7 +72,7 @@ if (cluster.isPrimary) {
                 }
                 return;
             }
-            io.emit("chat message", content, result.lastID);
+            socket.broadcast.emit("chat message", content, result.lastID);
             callback?.();
         });
 
